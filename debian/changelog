@@ -1,3 +1,18 @@
+ftp-upload (1.2) unstable; urgency=low
+
+  * Have --tmp-dir use a plain STOR rather than STOU.  Technically this
+    breaks backwards compatibility, but I suspect that it won't hurt
+    anybody, and doing it this way makes a lot more sense.
+  * Add --passive (closes: #115554).
+
+ -- Roderick Schertler <roderick@argon.org>  Mon, 15 Oct 2001 13:59:42 -0400
+
+ftp-upload (1.1-1) unstable; urgency=low
+
+  * Don't install extraneous empty directories (closes: #101344).
+
+ -- Roderick Schertler <roderick@argon.org>  Tue, 31 Jul 2001 09:15:19 -0400
+
 ftp-upload (1.1) unstable; urgency=low
 
   * Update to policy 3.5.2 (closes: #91159, #91459).
@@ -19,4 +34,4 @@ ftp-upload (0.1) unstable; urgency=low
 
  -- Roderick Schertler <roderick@argon.org>  Sun,  7 Feb 1999 16:19:25 -0500
 
-$Id: changelog,v 1.4 2001/04/07 03:29:52 roderick Exp $
+$Id: changelog,v 1.7 2001/10/15 18:01:57 roderick Exp $

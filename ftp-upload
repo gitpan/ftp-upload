@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-# $Id: ftp-upload,v 1.6 2001/04/07 03:29:32 roderick Exp $
+# $Id: ftp-upload,v 1.7 2001/10/15 18:02:56 roderick Exp $
 #
 # Roderick Schertler <roderick@argon.org>
 
@@ -31,13 +31,14 @@ sub TMP_DIFFDIR	() { 2 }
 
 (my $Me = $0) =~ s-.*/--;
 my # new line required for makemaker
-    $VERSION = '1.1';
+    $VERSION = '1.2';
 
 my $Account	= undef;
 my @As		= ();
 my $Debug	= 0;
 my @Dir		= ();		# array for multiple chdirs between files
 my $Exit	= 0;
+my $Force_passive = 0;
 my $Ftp		= undef;	# Net::FTP object
 my $Host	= undef;
 my $Ignore_quit_failure = 0;
@@ -56,6 +57,7 @@ my @Option_once = (
     'help!'		=> sub { usage() },
     'host|h=s'		=> \$Host,
     'ignore-quit-failure!' => \$Ignore_quit_failure,
+    'passive'		=> \$Force_passive,
     'password-fd=i'	=> \$Password_fd,
     'password-stdin|s'	=> sub { $Password_fd = fileno STDIN },
     'password=s'	=> \$Password,
@@ -92,6 +94,7 @@ initial switches:
 initial remote specification switches:
         --account account	no default
     -h, --host host		no default
+    	--passive		force transfers to use passive mode
         --password pw		default is email address
     -s,	--password-stdin	read password from stdin
         --password-fd fd	read password from file descriptor fd
@@ -215,6 +218,7 @@ sub init {
 
     @arg = ($Host);
     push @arg, Debug => 1 if $Debug;
+    push @arg, Passive => 1 if $Force_passive;
     verbose "open $Host";
     $Ftp = Net::FTP->new(@arg)
 	or xdie "can't connect to $Host: $@\n";
@@ -267,16 +271,24 @@ sub main {
 		    	$remote_diff ? " as $remote" : '';
 	}
 
-	elsif ($Tmp_strategy == TMP_SAMEDIR || $Tmp_strategy == TMP_DIFFDIR) {
-	    my $tmp_want = $Tmp_strategy == TMP_DIFFDIR
-			    ? "$Tmp_dir/$remote"
-			    : "tmp.$remote";
+	elsif ($Tmp_strategy == TMP_SAMEDIR) {
+	    my $tmp_want = "tmp.$remote";
 	    verbose "put_unique $local $tmp_want";
 	    defined(my $tmp_got = $Ftp->put_unique($local, $tmp_want))
 		or ftp_die "error storing $local as $tmp_want uniquely";
 	    verbose "rename $tmp_got $remote";
 	    $Ftp->rename($tmp_got, $remote)
 		or ftp_die "error renaming $tmp_got to $remote";
+	}
+
+    	elsif ($Tmp_strategy == TMP_DIFFDIR) {
+	    my $tmp_want = "$Tmp_dir/$remote";
+	    verbose "put $local $tmp_want";
+	    defined($Ftp->put($local, $tmp_want))
+		or ftp_die "error storing $local as $tmp_want";
+	    verbose "rename $tmp_want $remote";
+	    $Ftp->rename($tmp_want, $remote)
+		or ftp_die "error renaming $tmp_want to $remote";
 	}
 
 	else {
@@ -384,6 +396,16 @@ systems need this.  There is no default.
 Specify the host to which to connect.  There is no default, you have to
 specify this switch.
 
+=item B<--passive>
+
+Force the use of passive (PASV) transfers.  Passive transfers are
+required with some firewall configurations, but if you have such
+you'd do better to configure Net::FTP so that it knows when to use
+them (see L<Net::Config>).  If you need to use passive transfers with
+certain (broken) servers, however, this switch is your best bet.
+Alternatively, you can set $FTP_PASSIVE to 1 in the environment (see
+L<Net::FTP>).
+
 =item B<--password> I<pw>
 
 This gives the password which will be used to login.  The default is your
@@ -479,11 +501,9 @@ and I'll coordinate such requests.
 
 =item B<--tmp-dir> I<dir>
 
-This is like B<--tmp-samedir> except that the file is transferred into
-the given directory rather than into its final directory.  As with
-B<--tmp-dir> it is renamed when the transfer is finished, and the
-remote server must give a recognizable response to B<STOU> for this to
-work.
+Transfer files to I<dir> on the remote host, then rename them when the
+transfer is complete.  This is safer than B<--tmp-samedir> because it
+doesn't use C<STOU> and so it works with more servers.
 
     ftp-upload -h $host --tmp-dir tmp-incoming $file
 
