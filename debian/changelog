@@ -1,3 +1,15 @@
+ftp-upload (1.3) unstable; urgency=low
+
+  * Add --full-path.  I'm afraid this is another incompatible change but I
+    think the new behavior is much less surprising. If you upload
+    /etc/motd it will now by default be stored as motd rather than
+    /etc/motd.  Use --full-path to get the old behavior back.
+  * Correct --tmp-samedir and --tmp-dir handling when the local file name
+    contains a directory.
+  * Update to policy 3.5.6 (no changes).
+
+ -- Roderick Schertler <roderick@argon.org>  Thu, 29 Nov 2001 09:42:17 -0500
+
 ftp-upload (1.2) unstable; urgency=low
 
   * Have --tmp-dir use a plain STOR rather than STOU.  Technically this
@@ -34,4 +46,4 @@ ftp-upload (0.1) unstable; urgency=low
 
  -- Roderick Schertler <roderick@argon.org>  Sun,  7 Feb 1999 16:19:25 -0500
 
-$Id: changelog,v 1.7 2001/10/15 18:01:57 roderick Exp $
+$Id: changelog,v 1.8 2001/11/29 14:52:31 roderick Exp $

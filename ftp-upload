@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-# $Id: ftp-upload,v 1.7 2001/10/15 18:02:56 roderick Exp $
+# $Id: ftp-upload,v 1.8 2001/11/29 14:52:08 roderick Exp $
 #
 # Roderick Schertler <roderick@argon.org>
 
@@ -22,14 +22,14 @@ use strict;
 
 use sigtrap qw(die normal-signals);	# do END processing upon signals
 
-use Getopt::Long	();
-use Net::FTP		();
+use File::Basename	qw(basename dirname);
+use Getopt::Long	  ();
+use Net::FTP		  ();
 
 sub TMP_NONE	() { 0 }
 sub TMP_SAMEDIR	() { 1 }
 sub TMP_DIFFDIR	() { 2 }
 
-(my $Me = $0) =~ s-.*/--;
 my # new line required for makemaker
     $VERSION = '1.2';
 
@@ -39,10 +39,12 @@ my $Debug	= 0;
 my @Dir		= ();		# array for multiple chdirs between files
 my $Exit	= 0;
 my $Force_passive = 0;
+my $Full_path	= 0;
 my $Ftp		= undef;	# Net::FTP object
 my $Host	= undef;
 my $Ignore_quit_failure = 0;
 my $Ls		= 0;
+my $Me		= basename $0;
 my $Password	= undef;
 my $Password_fd	= undef;
 my $Tmp_dir	= undef;
@@ -54,7 +56,7 @@ my $Verbose	= 0;
 my @Option_once = (
     'account=s'		=> \$Account,
     'debug!'		=> \$Debug,
-    'help!'		=> sub { usage() },
+    'help'		=> sub { usage() },
     'host|h=s'		=> \$Host,
     'ignore-quit-failure!' => \$Ignore_quit_failure,
     'passive'		=> \$Force_passive,
@@ -71,6 +73,7 @@ my @Option_repeatable = (
     'ascii|a'		=> sub { $Transfer_type = 'A' },
     'binary|b'		=> sub { $Transfer_type = 'I' },
     'dir=s@'		=> \@Dir,
+    'full-path!'	=> \$Full_path,
     'ls!'		=> \$Ls,
     # XXX work around bogus warning from Getopt::Long by using 2 specs
     'l'			=> \$Ls,
@@ -106,8 +109,10 @@ affect transfers of files which follow):
     -a, --ascii			transfer files in ASCII mode
     -b, --binary		transfer files in binary mode (default)
     -d, --dir dir		chdir to dir
+    	--full-path		use local file name for remote, including dirs
+	--no-full-path		rescind --full-path (default)
     -l, --ls			try to do dir on files after transfer
-    -L, --nols			don't do dir on files after transfer (default)
+    -L, --no-ls			don't do dir on files after transfer (default)
         --tmp-none		upload files directly (default)
         --tmp-samedir		upload to tmp names, rename when done
         --tmp-dir dir		upload to given dir, rename when done
@@ -133,6 +138,7 @@ sub xwarn {
 sub usage {
     xwarn @_ if @_;
     print STDERR $Usage;
+    # Use exit() rather than die(), as Getopt::Long does eval().
     exit 1;
 }
 
@@ -261,7 +267,9 @@ sub main {
 	    	    	    " intervening filename\n";
 
 	my $local	= shift @ARGV;
-	my $remote	= @As ? shift @As : $local;
+	my $remote	= @As ? shift @As
+			    : $Full_path ? $local : basename $local;
+	my $remote_base = basename $remote;
 	my $remote_diff	= $remote ne $local;
 
 	if ($Tmp_strategy == TMP_NONE) {
@@ -272,7 +280,9 @@ sub main {
 	}
 
 	elsif ($Tmp_strategy == TMP_SAMEDIR) {
-	    my $tmp_want = "tmp.$remote";
+	    my $remote_dir = dirname $remote;
+	    my $tmp_want = ($remote_dir ne '.' ? "$remote_dir/" : '')
+			    . "tmp.$remote_base";
 	    verbose "put_unique $local $tmp_want";
 	    defined(my $tmp_got = $Ftp->put_unique($local, $tmp_want))
 		or ftp_die "error storing $local as $tmp_want uniquely";
@@ -282,7 +292,7 @@ sub main {
 	}
 
     	elsif ($Tmp_strategy == TMP_DIFFDIR) {
-	    my $tmp_want = "$Tmp_dir/$remote";
+	    my $tmp_want = "$Tmp_dir/$remote_base";
 	    verbose "put $local $tmp_want";
 	    defined($Ftp->put($local, $tmp_want))
 		or ftp_die "error storing $local as $tmp_want";
@@ -470,6 +480,30 @@ use this multiple times between files, B<ftp-upload> will chdir once for
 each time you specify it.  Using C<..> as the I<dir> will cause an FTP
 C<CDUP> to be done rather than a C<CWD>.
 
+=item B<--full-path>
+
+Normally uploaded files go into the current directory on the remote
+host, even when the local file name given contains slashes.  Eg, if you
+say
+
+    ftp-upload -h $host /etc/motd
+
+B<ftp-upload> will upload the file as F<motd>, not F</etc/motd>.  This
+differs from how the standard B<ftp> program works, and it also differs
+with how B<ftp-upload> worked before version 1.3.
+
+If you specify B<--full-path>, you'll get the other behavior.  A request
+to upload F<dir/file> will tell the server to store F<dir/file> rather
+than F<file>.
+
+When you use B<--as> the B<--full-path> setting doesn't matter.
+B<--full-path> only tells the program what name to use when it's
+choosing the name.
+
+=item B<--no-full-path>
+
+Disable B<--full-path>.  This is the default.
+
 =item B<-l>, B<--ls>
 
 Try to get a remote directory listing of files after transferring them.
@@ -477,7 +511,7 @@ I say "try" because there's no guaranteed way to do this with the FTP
 protocol.  The command I run is C<LIST I<file>>.  This will generally
 work if I<file> doesn't contain any special characters.
 
-=item B<-L>, B<--nols>
+=item B<-L>, B<--no-ls>
 
 Disable the B<--ls> behavior.
 
@@ -505,7 +539,7 @@ Transfer files to I<dir> on the remote host, then rename them when the
 transfer is complete.  This is safer than B<--tmp-samedir> because it
 doesn't use C<STOU> and so it works with more servers.
 
-    ftp-upload -h $host --tmp-dir tmp-incoming $file
+    ftp-upload -h $host --tmp-dir incoming $file
 
 =back
 
