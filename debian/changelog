@@ -1,7 +1,14 @@
+ftp-upload (1.0) unstable; urgency=low
+
+  * Adjust for new Perl packages.
+  * Add --ignore-quit-failure switch.
+
+ -- Roderick Schertler <roderick@argon.org>  Tue,  6 Jul 1999 18:27:02 -0400
+
 ftp-upload (0.1) unstable; urgency=low
 
   * Initial version.
 
  -- Roderick Schertler <roderick@argon.org>  Sun,  7 Feb 1999 16:19:25 -0500
 
-$Id: changelog,v 1.1 1999/02/07 22:24:00 roderick Exp $
+$Id: changelog,v 1.2 1999/07/07 13:43:27 roderick Exp $

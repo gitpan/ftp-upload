@@ -1,9 +1,16 @@
 #!/usr/bin/make -f
 
-# $Id: rules,v 1.1 1999/02/07 22:24:00 roderick Exp $
+# $Id: rules,v 1.2 1999/07/07 13:43:27 roderick Exp $
 
-dt	:= debian/tmp
-prefix	= `pwd`/$(dt)
+dt		:= debian/tmp
+prefix		 = `pwd`/$(dt)
+stamp_build	:= debian/stamp.build
+stamp_install	:= debian/stamp.install
+clean		:= $(stamp_build) $(stamp_install)
+
+ifndef PERL
+    PERL	:= perl
+endif
 
 # Setting PREFIX at Makefile generation time loses because it might or
 # might not match *perl*.  If it does the resulting hierarchy is wrong.
@@ -11,20 +18,16 @@ prefix	= `pwd`/$(dt)
 # been determined.  Since I have to add variables at install time anyway
 # I set them all there.
 
-build:
+build: $(stamp_build)
+$(stamp_build):
 	dh_testdir
-	perl Makefile.PL
+	$(PERL) Makefile.PL
 	$(MAKE)
 	$(MAKE) test
+	touch $@
 
-clean:
-	dh_testdir
-	dh_testroot
-	[ ! -f Makefile ] || $(MAKE) realclean
-	dh_clean
-
-binary-indep: build
-#	dh_testversion
+install: $(stamp_install)
+$(stamp_install): $(stamp_build)
 	dh_testdir
 	dh_testroot
 	dh_clean -k
@@ -34,6 +37,19 @@ binary-indep: build
 		INSTALLMAN1DIR=$(prefix)/usr/man/man1 \
 		INSTALLMAN3DIR=$(prefix)/usr/man/man3 \
 	    pure_perl_install
+	touch $@
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f $(clean)
+	[ ! -f Makefile ] || $(MAKE) realclean
+	dh_clean
+
+binary-indep: $(stamp_install)
+#	dh_testversion
+	dh_testdir
+	dh_testroot
 	dh_installdocs
 	dh_installexamples
 	dh_installmenu
@@ -48,14 +64,15 @@ binary-indep: build
 	dh_fixperms
 	dh_suidregister
 	dh_installdeb
+	dh_perl
 	dh_shlibdeps
 	dh_gencontrol -u -isp
 #	dh_makeshlibs
 	dh_md5sums
 	dh_builddeb
 
-binary-arch: build
+binary-arch:
 
 binary: binary-indep binary-arch
 
-.PHONY: build clean binary-indep binary-arch binary install
+.PHONY: build install clean binary-indep binary-arch binary

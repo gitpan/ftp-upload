@@ -6,7 +6,7 @@ Standards-Version: 2.5.0.0
 
 Package: ftp-upload
 Architecture: all
-Depends: perl, libnet-perl
+Depends: perl5, libnet-perl
 Description: put files with FTP from a script
  ftp-upload transfers local files to another machine using FTP.  It's
  meant to be used by scripts and such rather than interactively.  There's
