@@ -1,0 +1,34 @@
+This is the ftp-upload distribution.  ftp-upload transfers local files
+to another machine using FTP.  It's meant to be used by scripts and such
+rather than interactively.  There's no user interface, the program is
+controlled strictly via the command line.  It is disciplined with its
+exit status.
+
+The change log is in debian/changelog.  Other than this you'll probably
+want to ignore the contents of the debian subdirectory, it contains the
+files which turn the distribution into a Debian package.
+
+The program can be installed in the usual manner:
+
+    perl Makefile.PL
+    make install
+
+Roderick Schertler <roderick@argon.org>
+
+Copyright (C) 1999 Roderick Schertler.  This program is free software;
+you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation;
+either version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+For a copy of the GNU General Public License write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+On Debian systems, the complete text of the GNU General Public License
+can be found in `/usr/doc/copyright/GPL'.
+
+$Id: README,v 1.2 1999/02/07 22:43:19 roderick Exp $

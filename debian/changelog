@@ -1,0 +1,7 @@
+ftp-upload (0.1) unstable; urgency=low
+
+  * Initial version.
+
+ -- Roderick Schertler <roderick@argon.org>  Sun,  7 Feb 1999 16:19:25 -0500
+
+$Id: changelog,v 1.1 1999/02/07 22:24:00 roderick Exp $
