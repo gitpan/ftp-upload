@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-# $Id: ftp-upload,v 1.4 1999/07/07 13:43:25 roderick Exp $
+# $Id: ftp-upload,v 1.6 2001/04/07 03:29:32 roderick Exp $
 #
 # Roderick Schertler <roderick@argon.org>
 
@@ -31,7 +31,7 @@ sub TMP_DIFFDIR	() { 2 }
 
 (my $Me = $0) =~ s-.*/--;
 my # new line required for makemaker
-    $VERSION = '1.0';
+    $VERSION = '1.1';
 
 my $Account	= undef;
 my @As		= ();
@@ -69,7 +69,9 @@ my @Option_repeatable = (
     'ascii|a'		=> sub { $Transfer_type = 'A' },
     'binary|b'		=> sub { $Transfer_type = 'I' },
     'dir=s@'		=> \@Dir,
-    'ls|l!'		=> \$Ls,
+    'ls!'		=> \$Ls,
+    # XXX work around bogus warning from Getopt::Long by using 2 specs
+    'l'			=> \$Ls,
     'L'			=> sub { $Ls = 0 },
     'tmp-dir=s'		=> sub { $Tmp_strategy = TMP_DIFFDIR;
 				    $Tmp_dir = $_[1] },
@@ -127,7 +129,8 @@ sub xwarn {
 
 sub usage {
     xwarn @_ if @_;
-    die $Usage;
+    print STDERR $Usage;
+    exit 1;
 }
 
 sub verbose {

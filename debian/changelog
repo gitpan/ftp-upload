@@ -1,3 +1,11 @@
+ftp-upload (1.1) unstable; urgency=low
+
+  * Update to policy 3.5.2 (closes: #91159, #91459).
+  * Update to latest Perl policy.
+  * Adjust for new Getopt::Long.
+
+ -- Roderick Schertler <roderick@argon.org>  Fri,  6 Apr 2001 23:12:41 -0400
+
 ftp-upload (1.0) unstable; urgency=low
 
   * Adjust for new Perl packages.
@@ -11,4 +19,4 @@ ftp-upload (0.1) unstable; urgency=low
 
  -- Roderick Schertler <roderick@argon.org>  Sun,  7 Feb 1999 16:19:25 -0500
 
-$Id: changelog,v 1.2 1999/07/07 13:43:27 roderick Exp $
+$Id: changelog,v 1.4 2001/04/07 03:29:52 roderick Exp $
