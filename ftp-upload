@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-# $Id: ftp-upload,v 1.8 2001/11/29 14:52:08 roderick Exp $
+# $Id: ftp-upload,v 1.10 2003/05/06 19:10:43 roderick Exp $
 #
 # Roderick Schertler <roderick@argon.org>
 
@@ -31,7 +31,7 @@ sub TMP_SAMEDIR	() { 1 }
 sub TMP_DIFFDIR	() { 2 }
 
 my # new line required for makemaker
-    $VERSION = '1.2';
+    $VERSION = '1.4';
 
 my $Account	= undef;
 my @As		= ();
@@ -72,7 +72,7 @@ my @Option_repeatable = (
     'as=s@'		=> \@As,
     'ascii|a'		=> sub { $Transfer_type = 'A' },
     'binary|b'		=> sub { $Transfer_type = 'I' },
-    'dir=s@'		=> \@Dir,
+    'dir|d=s@'		=> \@Dir,
     'full-path!'	=> \$Full_path,
     'ls!'		=> \$Ls,
     # XXX work around bogus warning from Getopt::Long by using 2 specs
