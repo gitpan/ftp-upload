@@ -1,0 +1,4 @@
+$Id: TODO,v 1.1 2006-03-16 14:22:14 roderick Exp $
+
+- option like rsync's --relative to recreate the local directory structure
+  on the remote side (idea from Andras Galos <galosa@e4ec.org>)

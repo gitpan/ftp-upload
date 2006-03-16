@@ -1,3 +1,10 @@
+ftp-upload (1.5) unstable; urgency=low
+
+  * Add --tmp-format.
+  * Bump Standards-Version to 3.6.2 (no changes).
+
+ -- Roderick Schertler <roderick@argon.org>  Thu, 16 Mar 2006 09:18:34 -0500
+
 ftp-upload (1.4) unstable; urgency=low
 
   * Oops, the -d alias for --dir didn't work (closes: #192134).
@@ -53,4 +60,4 @@ ftp-upload (0.1) unstable; urgency=low
 
  -- Roderick Schertler <roderick@argon.org>  Sun,  7 Feb 1999 16:19:25 -0500
 
-$Id: changelog,v 1.10 2003/05/06 19:08:46 roderick Exp $
+$Id: changelog,v 1.11 2006-03-16 14:22:16 roderick Exp $

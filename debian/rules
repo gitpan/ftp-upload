@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-# $Id: rules,v 1.4 2001/07/31 13:22:51 roderick Exp $
+# $Id: rules,v 1.4 2001-07-31 13:22:51 roderick Exp $
 
 dt		:= debian/ftp-upload
 prefix		 = `pwd`/$(dt)

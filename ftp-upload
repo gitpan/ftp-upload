@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-# $Id: ftp-upload,v 1.10 2003/05/06 19:10:43 roderick Exp $
+# $Id: ftp-upload,v 1.11 2006-03-16 14:22:07 roderick Exp $
 #
 # Roderick Schertler <roderick@argon.org>
 
@@ -28,10 +28,10 @@ use Net::FTP		  ();
 
 sub TMP_NONE	() { 0 }
 sub TMP_SAMEDIR	() { 1 }
-sub TMP_DIFFDIR	() { 2 }
+sub TMP_FORMAT	() { 2 }
 
 my # new line required for makemaker
-    $VERSION = '1.4';
+    $VERSION = '1.5';
 
 my $Account	= undef;
 my @As		= ();
@@ -47,7 +47,7 @@ my $Ls		= 0;
 my $Me		= basename $0;
 my $Password	= undef;
 my $Password_fd	= undef;
-my $Tmp_dir	= undef;
+my $Tmp_format	= undef;
 my $Tmp_strategy = TMP_NONE;
 my $Transfer_type = 'I';
 my $User	= undef;
@@ -78,8 +78,11 @@ my @Option_repeatable = (
     # XXX work around bogus warning from Getopt::Long by using 2 specs
     'l'			=> \$Ls,
     'L'			=> sub { $Ls = 0 },
-    'tmp-dir=s'		=> sub { $Tmp_strategy = TMP_DIFFDIR;
-				    $Tmp_dir = $_[1] },
+    'tmp-dir=s'		=> sub { $Tmp_strategy = TMP_FORMAT;
+				    ($Tmp_format = $_[1]) =~ s/%/%%/g;
+    	    	    	    	    $Tmp_format .= "/%s"; },
+    'tmp-format=s'	=> sub { $Tmp_strategy = TMP_FORMAT;
+				    $Tmp_format = $_[1]; },
     'tmp-none'		=> sub { $Tmp_strategy = TMP_NONE },
     'tmp-samedir'	=> sub { $Tmp_strategy = TMP_SAMEDIR },
 );
@@ -116,6 +119,7 @@ affect transfers of files which follow):
         --tmp-none		upload files directly (default)
         --tmp-samedir		upload to tmp names, rename when done
         --tmp-dir dir		upload to given dir, rename when done
+        --tmp-format fmt	upload file to sprintf(fmt, f), rename when done
 
 See the man page or \`perldoc $Me\' for the full documentation.
 EOF
@@ -291,8 +295,8 @@ sub main {
 		or ftp_die "error renaming $tmp_got to $remote";
 	}
 
-    	elsif ($Tmp_strategy == TMP_DIFFDIR) {
-	    my $tmp_want = "$Tmp_dir/$remote_base";
+    	elsif ($Tmp_strategy == TMP_FORMAT) {
+	    my $tmp_want = sprintf $Tmp_format, $remote_base;
 	    verbose "put $local $tmp_want";
 	    defined($Ftp->put($local, $tmp_want))
 		or ftp_die "error storing $local as $tmp_want";
@@ -540,6 +544,15 @@ transfer is complete.  This is safer than B<--tmp-samedir> because it
 doesn't use C<STOU> and so it works with more servers.
 
     ftp-upload -h $host --tmp-dir incoming $file
+
+=item B<--tmp-format> I<fmt>
+
+Transfer files to C<sprintf(I<fmt>, I<file base name>)>, then rename
+them when the transfer is complete.  Like B<--tmp-dir>, this is safer
+than B<--tmp-samedir> because it doesn't use C<STOU> and so it works
+with more servers.
+
+    ftp-upload -h $host --tmp-format tmp.%s $file
 
 =back
 
